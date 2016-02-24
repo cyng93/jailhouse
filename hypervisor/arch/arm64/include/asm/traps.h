@@ -31,5 +31,7 @@ struct trap_context {
 
 void arch_skip_instruction(struct trap_context *ctx);
 
+int arch_handle_dabt(struct trap_context *ctx);
+
 #endif /* !__ASSEMBLY__ */
 #endif /* !_JAILHOUSE_ASM_TRAPS_H */
