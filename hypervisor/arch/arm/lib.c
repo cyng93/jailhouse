@@ -13,14 +13,12 @@
 #include <jailhouse/processor.h>
 #include <jailhouse/string.h>
 #include <jailhouse/types.h>
+#include <asm/percpu.h>
 #include <asm/sysregs.h>
 
 int phys_processor_id(void)
 {
-	u32 mpidr;
-
-	arm_read_sysreg(MPIDR_EL1, mpidr);
-	return mpidr & MPIDR_CPUID_MASK;
+	return this_cpu_data()->cpu_id;
 }
 
 void *memcpy(void *dest, const void *src, unsigned long n)
