@@ -21,6 +21,18 @@
 #include <asm/cell.h>
 #include <asm/spinlock.h>
 
+union mpidr {
+	u64 val;
+	struct {
+		u8 aff0;
+		u8 aff1;
+		u8 aff2;
+		u8 pad1;
+		u8 aff3;
+		u8 pad2[3];
+	} f;
+};
+
 struct per_cpu {
 	/* common fields */
 	unsigned int cpu_id;
@@ -30,6 +42,7 @@ struct per_cpu {
 	bool failed;
 
 	bool flush_vcpu_caches;
+	union mpidr mpidr;
 } __attribute__((aligned(PAGE_SIZE)));
 
 static inline struct per_cpu *this_cpu_data(void)
