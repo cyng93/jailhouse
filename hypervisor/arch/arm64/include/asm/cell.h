@@ -28,6 +28,7 @@ struct arch_cell {
 	bool needs_flush;
 
 	u64 spis;
+	unsigned int last_virt_id;
 };
 
 extern struct cell root_cell;
