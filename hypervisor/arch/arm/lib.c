@@ -20,15 +20,3 @@ int phys_processor_id(void)
 {
 	return this_cpu_data()->cpu_id;
 }
-
-void *memcpy(void *dest, const void *src, unsigned long n)
-{
-	unsigned long i;
-	const char *csrc = src;
-	char *cdest = dest;
-
-	for (i = 0; i < n; i++)
-		cdest[i] = csrc[i];
-
-	return dest;
-}

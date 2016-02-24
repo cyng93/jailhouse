@@ -32,3 +32,15 @@ int strcmp(const char *s1, const char *s2)
 	}
 	return *(unsigned char *)s1 - *(unsigned char *)s2;
 }
+
+void *memcpy(void *dest, const void *src, unsigned long n)
+{
+	unsigned long i;
+	const char *csrc = src;
+	char *cdest = dest;
+
+	for (i = 0; i < n; i++)
+		cdest[i] = csrc[i];
+
+	return dest;
+}
