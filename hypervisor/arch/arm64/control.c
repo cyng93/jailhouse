@@ -124,8 +124,12 @@ void arch_config_commit(struct cell *cell_added_removed)
 
 void arch_shutdown(void)
 {
-	trace_error(-EINVAL);
-	while (1);
+	unsigned int cpu;
+
+	/* turn off the hypervisor when we return from the exit handler */
+	if (root_cell.cpu_set)
+		for_each_cpu(cpu, root_cell.cpu_set)
+			per_cpu(cpu)->shutdown = true;
 }
 
 void arch_suspend_cpu(unsigned int cpu_id)

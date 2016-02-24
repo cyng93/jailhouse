@@ -67,6 +67,7 @@ struct per_cpu {
 
 	unsigned int virt_id;
 	union mpidr mpidr;
+	bool shutdown;
 } __attribute__((aligned(PAGE_SIZE)));
 
 static inline struct per_cpu *this_cpu_data(void)

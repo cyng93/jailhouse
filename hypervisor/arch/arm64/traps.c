@@ -195,5 +195,9 @@ struct registers *arch_handle_exit(struct per_cpu *cpu_data,
 		panic_stop();
 	}
 
+	if (cpu_data->shutdown)
+		/* Won't return here. */
+		arch_shutdown_self(cpu_data);
+
 	vmreturn(regs);
 }
