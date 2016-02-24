@@ -365,7 +365,7 @@ int pci_init(void)
 		end_bus = system_config->platform_info.x86.mmconfig_end_bus;
 		mmcfg_size = (end_bus + 1) * 256 * 4096;
 
-		pci_space = page_alloc(&remap_pool, mmcfg_size / PAGE_SIZE);
+		pci_space = page_alloc(&remap_pool, mmcfg_size / PAGE_SIZE, 0);
 		if (!pci_space)
 			return trace_error(-ENOMEM);
 
@@ -572,7 +572,8 @@ static int pci_add_physical_device(struct cell *cell, struct pci_device *device)
 	err = arch_pci_add_physical_device(cell, device);
 
 	if (!err && device->info->msix_address) {
-		device->msix_table = page_alloc(&remap_pool, size / PAGE_SIZE);
+		device->msix_table =
+				page_alloc(&remap_pool, size / PAGE_SIZE, 0);
 		if (!device->msix_table) {
 			err = trace_error(-ENOMEM);
 			goto error_remove_dev;
@@ -589,7 +590,7 @@ static int pci_add_physical_device(struct cell *cell, struct pci_device *device)
 		if (device->info->num_msix_vectors > PCI_EMBEDDED_MSIX_VECTS) {
 			pages = PAGES(sizeof(union pci_msix_vector) *
 				      device->info->num_msix_vectors);
-			device->msix_vectors = page_alloc(&mem_pool, pages);
+			device->msix_vectors = page_alloc(&mem_pool, pages, 0);
 			if (!device->msix_vectors) {
 				err = -ENOMEM;
 				goto error_unmap_table;
@@ -664,7 +665,7 @@ int pci_cell_init(struct cell *cell)
 	if (cell->config->num_pci_devices == 0)
 		return 0;
 
-	cell->pci_devices = page_alloc(&mem_pool, devlist_pages);
+	cell->pci_devices = page_alloc(&mem_pool, devlist_pages, 0);
 	if (!cell->pci_devices)
 		return -ENOMEM;
 

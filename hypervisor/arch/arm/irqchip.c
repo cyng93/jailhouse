@@ -39,7 +39,8 @@ static int irqchip_init_pending(struct per_cpu *cpu_data)
 	struct pending_irq *pend_array;
 
 	if (cpu_data->pending_irqs == NULL) {
-		cpu_data->pending_irqs = pend_array = page_alloc(&mem_pool, 1);
+		cpu_data->pending_irqs = pend_array =
+						page_alloc(&mem_pool, 1, 0);
 		if (pend_array == NULL)
 			return -ENOMEM;
 	} else {

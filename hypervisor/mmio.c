@@ -40,7 +40,7 @@ int mmio_cell_init(struct cell *cell)
 	pages = page_alloc(&mem_pool,
 			   PAGES(cell->max_mmio_regions *
 				 (sizeof(struct mmio_region_location) +
-				  sizeof(struct mmio_region_handler))));
+				  sizeof(struct mmio_region_handler))), 0);
 	if (!pages)
 		return -ENOMEM;
 

@@ -91,38 +91,48 @@ static unsigned long find_next_free_page(struct page_pool *pool,
  * Allocate consecutive pages from the specified pool.
  * @param pool	Page pool to allocate from.
  * @param num	Number of pages.
+ * @param align	Pages should be aligned by num * PAGE_SIZE.
+ *		In this case, num absolutely needs to be a power
+ *		of 2, or a giant octopus will eat your machine.
  *
  * @return Pointer to first page or NULL if allocation failed.
  *
  * @see page_free
  */
-void *page_alloc(struct page_pool *pool, unsigned int num)
+void *page_alloc(struct page_pool *pool, unsigned int num, bool align)
 {
-	unsigned long start, last, next;
-	unsigned int allocated;
+	unsigned long start, next, i;
+	/* the pool itself might not be aligned to our desired size */
+	unsigned long offset_mask = num - 1;
+	unsigned int offset = ((unsigned long) pool->base_address >> PAGE_SHIFT)
+								& offset_mask;
 
-	start = find_next_free_page(pool, 0);
-	if (start == INVALID_PAGE_NR || num == 0)
+	if (num == 0)
 		return NULL;
 
-restart:
-	for (allocated = 1, last = start; allocated < num;
-	     allocated++, last = next) {
-		next = find_next_free_page(pool, last + 1);
-		if (next == INVALID_PAGE_NR)
-			return NULL;
-		if (next != last + 1) {
-			start = next;
-			goto restart;
-		}
+	next = align ? offset : 0;
+
+	while ((start = find_next_free_page(pool, next)) != INVALID_PAGE_NR) {
+
+		if (align && (start - offset) & offset_mask)
+			goto next_chunk;		/* not aligned */
+
+		for (i = start; i < start + num; i++)
+			if (test_bit(i, pool->used_bitmap))
+				goto next_chunk;	/* not available */
+
+		for (i = start; i < start + num; i++)
+			set_bit(i, pool->used_bitmap);
+
+		pool->used_pages += num;
+
+		return pool->base_address + start * PAGE_SIZE;
+
+next_chunk:
+		next += align ? num - ((start - offset) & offset_mask) : 1;
 	}
 
-	for (allocated = 0; allocated < num; allocated++)
-		set_bit(start + allocated, pool->used_bitmap);
-
-	pool->used_pages += num;
-
-	return pool->base_address + start * PAGE_SIZE;
+	return NULL;
 }
 
 /**
@@ -208,7 +218,7 @@ static int split_hugepage(const struct paging *paging, pt_entry_t pte,
 	flags = paging->get_flags(pte);
 
 	sub_structs.root_paging = paging + 1;
-	sub_structs.root_table = page_alloc(&mem_pool, 1);
+	sub_structs.root_table = page_alloc(&mem_pool, 1, 0);
 	if (!sub_structs.root_table)
 		return -ENOMEM;
 	paging->set_next_pt(pte, paging_hvirt2phys(sub_structs.root_table));
@@ -277,7 +287,7 @@ int paging_create(const struct paging_structures *pg_structs,
 				pt = paging_phys2hvirt(
 						paging->get_next_pt(pte));
 			} else {
-				pt = page_alloc(&mem_pool, 1);
+				pt = page_alloc(&mem_pool, 1, 0);
 				if (!pt)
 					return -ENOMEM;
 				paging->set_next_pt(pte,
@@ -489,7 +499,8 @@ int paging_init(void)
 		set_bit(n, mem_pool.used_bitmap);
 	mem_pool.flags = PAGE_SCRUB_ON_FREE;
 
-	remap_pool.used_bitmap = page_alloc(&mem_pool, NUM_REMAP_BITMAP_PAGES);
+	remap_pool.used_bitmap =
+			page_alloc(&mem_pool, NUM_REMAP_BITMAP_PAGES, 0);
 	remap_pool.used_pages =
 		hypervisor_header.max_cpus * NUM_TEMPORARY_PAGES;
 	for (n = 0; n < remap_pool.used_pages; n++)
@@ -498,7 +509,7 @@ int paging_init(void)
 	arch_paging_init();
 
 	hv_paging_structs.root_paging = hv_paging;
-	hv_paging_structs.root_table = page_alloc(&mem_pool, 1);
+	hv_paging_structs.root_table = page_alloc(&mem_pool, 1, 0);
 	if (!hv_paging_structs.root_table)
 		return -ENOMEM;
 

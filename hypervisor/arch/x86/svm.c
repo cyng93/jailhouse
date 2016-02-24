@@ -312,7 +312,7 @@ int vcpu_vendor_init(void)
 
 	/* Map guest parking code (shared between cells and CPUs) */
 	parking_pt.root_paging = npt_iommu_paging;
-	parking_pt.root_table = parked_mode_npt = page_alloc(&mem_pool, 1);
+	parking_pt.root_table = parked_mode_npt = page_alloc(&mem_pool, 1, 0);
 	if (!parked_mode_npt)
 		return -ENOMEM;
 	err = paging_create(&parking_pt, paging_hvirt2phys(parking_code),
@@ -331,7 +331,7 @@ int vcpu_vendor_init(void)
 		msrpm[SVM_MSRPM_0000][MSR_X2APIC_ICR/4] = 0x02;
 	} else {
 		if (has_avic) {
-			avic_page = page_alloc(&remap_pool, 1);
+			avic_page = page_alloc(&remap_pool, 1, 0);
 			if (!avic_page)
 				return trace_error(-ENOMEM);
 		}
@@ -346,7 +346,7 @@ int vcpu_vendor_cell_init(struct cell *cell)
 	u64 flags;
 
 	/* allocate iopm  */
-	cell->arch.svm.iopm = page_alloc(&mem_pool, IOPM_PAGES);
+	cell->arch.svm.iopm = page_alloc(&mem_pool, IOPM_PAGES, 0);
 	if (!cell->arch.svm.iopm)
 		return err;
 

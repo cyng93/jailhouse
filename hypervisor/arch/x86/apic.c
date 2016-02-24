@@ -170,7 +170,7 @@ int apic_init(void)
 		apic_ops.send_ipi = send_x2apic_ipi;
 		using_x2apic = true;
 	} else if (apicbase & APIC_BASE_EN) {
-		xapic_page = page_alloc(&remap_pool, 1);
+		xapic_page = page_alloc(&remap_pool, 1, 0);
 		if (!xapic_page)
 			return trace_error(-ENOMEM);
 		err = paging_create(&hv_paging_structs, XAPIC_BASE, PAGE_SIZE,

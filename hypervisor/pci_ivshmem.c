@@ -448,7 +448,7 @@ int pci_ivshmem_init(struct cell *cell, struct pci_device *device)
 	/* this is the first endpoint, allocate a new datastructure */
 	for (ivp = &ivshmem_list; *ivp; ivp = &((*ivp)->next))
 		; /* empty loop */
-	*ivp = page_alloc(&mem_pool, 1);
+	*ivp = page_alloc(&mem_pool, 1, 0);
 	if (!(*ivp))
 		return -ENOMEM;
 	ivshmem_connect_cell(*ivp, device, mem, 0);

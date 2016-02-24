@@ -329,7 +329,7 @@ int vcpu_vendor_cell_init(struct cell *cell)
 	int err;
 
 	/* allocate io_bitmap */
-	cell->arch.vmx.io_bitmap = page_alloc(&mem_pool, PIO_BITMAP_PAGES);
+	cell->arch.vmx.io_bitmap = page_alloc(&mem_pool, PIO_BITMAP_PAGES, 0);
 	if (!cell->arch.vmx.io_bitmap)
 		return -ENOMEM;
 

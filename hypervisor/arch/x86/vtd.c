@@ -565,7 +565,7 @@ static int vtd_init_ir_emulation(unsigned int unit_no, void *reg_base)
 	unit->irt_entries = 2 << (unit->irta & VTD_IRTA_SIZE_MASK);
 
 	size = PAGE_ALIGN(sizeof(struct vtd_irte_usage) * unit->irt_entries);
-	unit->irte_map = page_alloc(&mem_pool, size / PAGE_SIZE);
+	unit->irte_map = page_alloc(&mem_pool, size / PAGE_SIZE, 0);
 	if (!unit->irte_map)
 		return -ENOMEM;
 
@@ -600,7 +600,7 @@ int iommu_init(void)
 		return trace_error(-EINVAL);
 
 	int_remap_table =
-		page_alloc(&mem_pool, PAGES(sizeof(union vtd_irte) << n));
+		page_alloc(&mem_pool, PAGES(sizeof(union vtd_irte) << n), 0);
 	if (!int_remap_table)
 		return -ENOMEM;
 
@@ -610,11 +610,12 @@ int iommu_init(void)
 	if (units == 0)
 		return trace_error(-EINVAL);
 
-	dmar_reg_base = page_alloc(&remap_pool, units * PAGES(DMAR_MMIO_SIZE));
+	dmar_reg_base =
+		page_alloc(&remap_pool, units * PAGES(DMAR_MMIO_SIZE), 0);
 	if (!dmar_reg_base)
 		return trace_error(-ENOMEM);
 
-	unit_inv_queue = page_alloc(&mem_pool, units);
+	unit_inv_queue = page_alloc(&mem_pool, units, 0);
 	if (!unit_inv_queue)
 		return -ENOMEM;
 
@@ -808,7 +809,7 @@ int iommu_add_pci_device(struct cell *cell, struct pci_device *device)
 		context_entry_table =
 			paging_phys2hvirt(*root_entry_lo & PAGE_MASK);
 	} else {
-		context_entry_table = page_alloc(&mem_pool, 1);
+		context_entry_table = page_alloc(&mem_pool, 1, 0);
 		if (!context_entry_table)
 			goto error_nomem;
 		*root_entry_lo = VTD_ROOT_PRESENT |
@@ -876,7 +877,7 @@ int iommu_cell_init(struct cell *cell)
 		return trace_error(-ERANGE);
 
 	cell->arch.vtd.pg_structs.root_paging = vtd_paging;
-	cell->arch.vtd.pg_structs.root_table = page_alloc(&mem_pool, 1);
+	cell->arch.vtd.pg_structs.root_table = page_alloc(&mem_pool, 1, 0);
 	if (!cell->arch.vtd.pg_structs.root_table)
 		return -ENOMEM;
 

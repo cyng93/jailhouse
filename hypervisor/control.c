@@ -183,7 +183,7 @@ int cell_init(struct cell *cell)
 	if (cpu_set_size > PAGE_SIZE)
 		return trace_error(-EINVAL);
 	if (cpu_set_size > sizeof(cell->small_cpu_set.bitmap)) {
-		cpu_set = page_alloc(&mem_pool, 1);
+		cpu_set = page_alloc(&mem_pool, 1, 0);
 		if (!cpu_set)
 			return -ENOMEM;
 	} else {
@@ -386,7 +386,7 @@ static int cell_create(struct per_cpu *cpu_data, unsigned long config_address)
 	}
 
 	cell_pages = PAGES(sizeof(*cell) + cfg_total_size);
-	cell = page_alloc(&mem_pool, cell_pages);
+	cell = page_alloc(&mem_pool, cell_pages, 0);
 	if (!cell) {
 		err = -ENOMEM;
 		goto err_resume;

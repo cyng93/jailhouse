@@ -199,7 +199,7 @@ static int amd_iommu_init_pci(struct amd_iommu *entry,
 			 4);
 
 	/* Allocate and map MMIO space */
-	entry->mmio_base = page_alloc(&remap_pool, PAGES(iommu->size));
+	entry->mmio_base = page_alloc(&remap_pool, PAGES(iommu->size), 0);
 	if (!entry->mmio_base)
 		return -ENOMEM;
 
@@ -280,7 +280,7 @@ static int amd_iommu_init_buffers(struct amd_iommu *entry,
 				  struct jailhouse_iommu *iommu)
 {
 	/* Allocate and configure command buffer */
-	entry->cmd_buf_base = page_alloc(&mem_pool, PAGES(CMD_BUF_SIZE));
+	entry->cmd_buf_base = page_alloc(&mem_pool, PAGES(CMD_BUF_SIZE), 0);
 	if (!entry->cmd_buf_base)
 		return -ENOMEM;
 
@@ -291,7 +291,7 @@ static int amd_iommu_init_buffers(struct amd_iommu *entry,
 	entry->cmd_tail_ptr = 0;
 
 	/* Allocate and configure event log */
-	entry->evt_log_base = page_alloc(&mem_pool, PAGES(EVT_LOG_SIZE));
+	entry->evt_log_base = page_alloc(&mem_pool, PAGES(EVT_LOG_SIZE), 0);
 	if (!entry->evt_log_base)
 		return -ENOMEM;
 
@@ -476,7 +476,7 @@ static struct dev_table_entry *get_dev_table_entry(struct amd_iommu *iommu,
 		if (!allocate)
 			return NULL;
 
-		devtable_seg = page_alloc(&mem_pool, PAGES(seg_size));
+		devtable_seg = page_alloc(&mem_pool, PAGES(seg_size), 0);
 		if (!devtable_seg)
 			return NULL;
 		iommu->devtable_segments[seg_idx] = devtable_seg;
