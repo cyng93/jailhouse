@@ -814,8 +814,12 @@ long hypercall(unsigned long code, unsigned long arg1, unsigned long arg2)
  */
 void __attribute__((noreturn)) panic_stop(void)
 {
-	panic_printk("Stopping CPU %d (Cell: \"%s\")\n", this_cpu_id(),
-		     this_cell()->config->name);
+	panic_printk("Stopping CPU %d", this_cpu_id());
+
+	if (this_cell() && this_cell()->config)
+		panic_printk(" (Cell: \"%s\")", this_cell()->config->name);
+
+	panic_printk("\n");
 
 	if (phys_processor_id() == panic_cpu)
 		panic_in_progress = 0;
