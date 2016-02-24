@@ -10,6 +10,7 @@
  * the COPYING file in the top-level directory.
  */
 
+#include <jailhouse/control.h>
 #include <jailhouse/processor.h>
 #include <jailhouse/string.h>
 #include <jailhouse/types.h>
@@ -19,4 +20,16 @@
 int phys_processor_id(void)
 {
 	return this_cpu_data()->cpu_id;
+}
+
+unsigned int arm_cpu_virt2phys(struct cell *cell, unsigned int virt_id)
+{
+	unsigned int cpu;
+
+	for_each_cpu(cpu, cell->cpu_set) {
+		if (per_cpu(cpu)->virt_id == virt_id)
+			return cpu;
+	}
+
+	return -1;
 }

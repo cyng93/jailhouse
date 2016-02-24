@@ -302,18 +302,6 @@ void arch_handle_sgi(struct per_cpu *cpu_data, u32 irqn)
 	}
 }
 
-unsigned int arm_cpu_virt2phys(struct cell *cell, unsigned int virt_id)
-{
-	unsigned int cpu;
-
-	for_each_cpu(cpu, cell->cpu_set) {
-		if (per_cpu(cpu)->virt_id == virt_id)
-			return cpu;
-	}
-
-	return -1;
-}
-
 /*
  * Handle the maintenance interrupt, the rest is injected into the cell.
  * Return true when the IRQ has been handled by the hyp.
