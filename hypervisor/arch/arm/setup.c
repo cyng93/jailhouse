@@ -56,6 +56,7 @@ int arch_cpu_init(struct per_cpu *cpu_data)
 
 	cpu_data->psci_mbox.entry = 0;
 	cpu_data->virt_id = cpu_data->cpu_id;
+	arm_read_sysreg(MPIDR_EL1, cpu_data->mpidr.val);
 
 	/*
 	 * Copy the registers to restore from the linux stack here, because we

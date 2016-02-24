@@ -14,6 +14,7 @@
 #include <jailhouse/processor.h>
 #include <jailhouse/string.h>
 #include <jailhouse/types.h>
+#include <asm/control.h>
 #include <asm/percpu.h>
 #include <asm/sysregs.h>
 
@@ -30,6 +31,17 @@ unsigned int arm_cpu_virt2phys(struct cell *cell, unsigned int virt_id)
 		if (per_cpu(cpu)->virt_id == virt_id)
 			return cpu;
 	}
+
+	return -1;
+}
+
+unsigned int arm_cpu_by_mpid(struct cell *cell, unsigned long mpid)
+{
+	unsigned int cpu;
+
+	for_each_cpu(cpu, cell->cpu_set)
+		if (mpid == (per_cpu(cpu)->mpidr.val & MPIDR_CPUID_MASK))
+			return cpu;
 
 	return -1;
 }
