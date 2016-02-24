@@ -139,11 +139,14 @@ static void enter_hypervisor(void *info)
 {
 	struct jailhouse_header *header = info;
 	unsigned int cpu = smp_processor_id();
+	int (*entry)(unsigned int);
 	int err;
+
+	entry = header->entry + (unsigned long) hypervisor_mem;
 
 	if (cpu < header->max_cpus)
 		/* either returns 0 or the same error code across all CPUs */
-		err = header->entry(cpu);
+		err = entry(cpu);
 	else
 		err = -EINVAL;
 
@@ -178,7 +181,9 @@ static int jailhouse_cmd_enable(struct jailhouse_system __user *arg)
 	struct jailhouse_system *config;
 	struct jailhouse_memory *hv_mem = &config_header.hypervisor_memory;
 	struct jailhouse_header *header;
+#if JAILHOUSE_BORROW_ROOT_PT == 1
 	void __iomem *console = NULL;
+#endif
 	unsigned long config_size;
 	const char *fw_name;
 	long max_cpus;
@@ -235,8 +240,9 @@ static int jailhouse_cmd_enable(struct jailhouse_system __user *arg)
 	    config_size >= hv_mem->size - hv_core_and_percpu_size)
 		goto error_release_fw;
 
-	hypervisor_mem = jailhouse_ioremap(hv_mem->phys_start, JAILHOUSE_BASE,
-					   hv_mem->size);
+	hypervisor_mem = jailhouse_ioremap(hv_mem->phys_start,
+					   JAILHOUSE_BORROW_ROOT_PT ?
+					   JAILHOUSE_BASE : 0, hv_mem->size);
 	if (!hypervisor_mem) {
 		pr_err("jailhouse: Unable to map RAM reserved for hypervisor "
 		       "at %08lx\n", (unsigned long)hv_mem->phys_start);
@@ -258,6 +264,7 @@ static int jailhouse_cmd_enable(struct jailhouse_system __user *arg)
 	}
 
 	if (config->debug_console.flags & JAILHOUSE_MEM_IO) {
+#if JAILHOUSE_BORROW_ROOT_PT == 1
 		console = ioremap(config->debug_console.phys_start,
 				  config->debug_console.size);
 		if (!console) {
@@ -270,6 +277,10 @@ static int jailhouse_cmd_enable(struct jailhouse_system __user *arg)
 		/* The hypervisor has no notion of address spaces, so we need
 		 * to enforce conversion. */
 		header->debug_console_base = (void * __force)console;
+#else
+		header->debug_console_base =
+			(void * __force) config->debug_console.phys_start;
+#endif
 	}
 
 	err = jailhouse_cell_prepare_root(&config->root_cell);
@@ -294,8 +305,10 @@ static int jailhouse_cmd_enable(struct jailhouse_system __user *arg)
 		goto error_free_cell;
 	}
 
+#if JAILHOUSE_BORROW_ROOT_PT == 1
 	if (console)
 		iounmap(console);
+#endif
 
 	release_firmware(hypervisor);
 
@@ -314,8 +327,10 @@ error_free_cell:
 
 error_unmap:
 	vunmap(hypervisor_mem);
+#if JAILHOUSE_BORROW_ROOT_PT == 1
 	if (console)
 		iounmap(console);
+#endif
 
 error_release_fw:
 	release_firmware(hypervisor);
