@@ -47,4 +47,23 @@
 
 #endif /* CONFIG_MACH_FOUNDATION_V8 */
 
+#ifdef CONFIG_MACH_AMD_SEATTLE
+
+/* the device tree shipped with the kernel is wrong;
+ * these are the corrected values */
+#  define GICD_BASE	((void *)0xe1110000)
+#  define GICD_SIZE	0x1000
+#  define GICC_BASE	((void *)0xe112f000)
+#  define GICC_SIZE	0x2000
+#  define GICH_BASE	((void *)0xe1140000)
+#  define GICH_SIZE	0x10000
+#  define GICV_BASE	((void *)0xe116f000)
+#  define GICV_SIZE	0x2000
+
+#  include <asm/gic_v2.h>
+# define MAINTENANCE_IRQ 25
+# define UART_BASE	0xe1010000
+
+#endif /* CONFIG_MACH_AMD_SEATTLE */
+
 #endif /* !_JAILHOUSE_ASM_PLATFORM_H */
