@@ -107,8 +107,21 @@ static inline bool spi_in_cell(struct cell *cell, unsigned int spi)
 	/* FIXME: Change the configuration to a bitmask range */
 	u32 spi_mask;
 
-	if (spi >= 64)
+	if (spi >= 64) {
+#ifdef CONFIG_MACH_AMD_SEATTLE
+		/* uart irq workaround */
+		if (spi == 328)
+			return (cell != &root_cell);
+
+		/* xgmac1 irq workaround */
+		if ((spi == 322) || (spi ==324) ||
+			((spi >= 341) && (spi <= 345))) {
+
+			return (cell != &root_cell);
+		}
+#endif
 		return (cell == &root_cell);
+	}
 	else if (spi >= 32)
 		spi_mask = cell->arch.spis >> 32;
 	else
