@@ -15,6 +15,7 @@
 #include <asm/control.h>
 #include <asm/irqchip.h>
 #include <asm/setup.h>
+#include <asm/smp.h>
 
 int arch_init_early(void)
 {
@@ -33,6 +34,10 @@ int arch_cpu_init(struct per_cpu *cpu_data)
 
 	/* switch to the permanent page tables */
 	enable_mmu_el2(hv_paging_structs.root_table);
+
+	cpu_data->psci_mbox.entry = 0;
+	cpu_data->virt_id = cpu_data->cpu_id;
+	arm_read_sysreg(MPIDR_EL1, cpu_data->mpidr.val);
 
 	err = arch_mmu_cpu_cell_init(cpu_data);
 	if (err)

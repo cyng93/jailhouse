@@ -30,6 +30,32 @@ void arch_skip_instruction(struct trap_context *ctx)
 	ctx->pc += (instruction_length ? 4 : 2);
 }
 
+static int arch_handle_smc(struct trap_context *ctx)
+{
+	unsigned long *regs = ctx->regs;
+
+	if (!IS_PSCI_FN(regs[0]))
+		return TRAP_UNHANDLED;
+
+	regs[0] = psci_dispatch(ctx);
+	arch_skip_instruction(ctx);
+
+	return TRAP_HANDLED;
+}
+
+static int arch_handle_hvc(struct trap_context *ctx)
+{
+	unsigned long *regs = ctx->regs;
+
+	if (!IS_PSCI_FN(regs[0]))
+		return TRAP_UNHANDLED;
+
+	regs[0] = psci_dispatch(ctx);
+	arch_skip_instruction(ctx);
+
+	return TRAP_HANDLED;
+}
+
 static void dump_regs(struct trap_context *ctx)
 {
 	unsigned char i;
@@ -110,6 +136,14 @@ static void arch_handle_trap(struct per_cpu *cpu_data,
 	switch (ESR_EC(ctx.esr)) {
 	case ESR_EC_DABT_LOW:
 		ret = arch_handle_dabt(&ctx);
+		break;
+
+	case ESR_EC_SMC64:
+		ret = arch_handle_smc(&ctx);
+		break;
+
+	case ESR_EC_HVC64:
+		ret = arch_handle_hvc(&ctx);
 		break;
 
 	default:

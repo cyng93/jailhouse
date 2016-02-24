@@ -48,7 +48,7 @@
 
 #define IS_PSCI_FN(hvc)		((((hvc) >> 24) | 0x40) == 0xc4)
 
-#define PSCI_INVALID_ADDRESS	0xffffffff
+#define PSCI_INVALID_ADDRESS	(-1)
 
 #ifndef __ASSEMBLY__
 
