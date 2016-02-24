@@ -16,6 +16,8 @@
 
 /* Long-descriptor paging */
 extern const struct paging arm_paging[];
+extern const struct paging arm_s2_paging_alt[];
+extern const struct paging *cell_paging;
 
 #define hv_paging	arm_paging
 
