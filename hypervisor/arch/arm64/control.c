@@ -12,6 +12,10 @@
 
 #include <jailhouse/control.h>
 #include <jailhouse/printk.h>
+#include <asm/control.h>
+#include <asm/irqchip.h>
+#include <asm/platform.h>
+#include <asm/traps.h>
 
 int arch_cell_create(struct cell *cell)
 {
@@ -80,4 +84,37 @@ void arch_panic_park(void)
 {
 	trace_error(-EINVAL);
 	while (1);
+}
+
+void arch_handle_sgi(struct per_cpu *cpu_data, u32 irqn)
+{
+	cpu_data->stats[JAILHOUSE_CPU_STAT_VMEXITS_MANAGEMENT]++;
+
+	switch (irqn) {
+	case SGI_INJECT:
+		irqchip_inject_pending(cpu_data);
+		break;
+	default:
+		printk("WARN: unknown SGI received %d\n", irqn);
+	}
+}
+
+/*
+ * Handle the maintenance interrupt, the rest is injected into the cell.
+ * Return true when the IRQ has been handled by the hyp.
+ */
+bool arch_handle_phys_irq(struct per_cpu *cpu_data, u32 irqn)
+{
+	if (irqn == MAINTENANCE_IRQ) {
+		cpu_data->stats[JAILHOUSE_CPU_STAT_VMEXITS_MAINTENANCE]++;
+
+		irqchip_inject_pending(cpu_data);
+		return true;
+	}
+
+	cpu_data->stats[JAILHOUSE_CPU_STAT_VMEXITS_VIRQ]++;
+
+	irqchip_set_pending(cpu_data, irqn, true);
+
+	return false;
 }

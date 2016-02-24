@@ -19,5 +19,7 @@ always := built-in.o
 obj-y := entry.o setup.o control.o mmio.o caches.o
 obj-y += ../arm/mmu_cell.o ../arm/paging.o ../arm/dbg-write.o ../arm/lib.o
 obj-y += exception.o traps.o
+obj-y += ../arm/irqchip.o ../arm/gic-common.o
 
 obj-$(CONFIG_SERIAL_AMBA_PL011) += ../arm/dbg-write-pl011.o
+obj-$(CONFIG_ARM_GIC) += ../arm/gic-v2.o

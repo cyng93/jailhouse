@@ -26,6 +26,8 @@ struct arch_cell {
 	struct paging_structures mm;
 	spinlock_t caches_lock;
 	bool needs_flush;
+
+	u64 spis;
 };
 
 extern struct cell root_cell;
