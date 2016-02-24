@@ -14,6 +14,7 @@
 #include <linux/mm.h>
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
+#include <asm/cacheflush.h>
 
 #include "cell.h"
 #include "main.h"
@@ -323,6 +324,12 @@ static int load_image(struct cell *cell,
 			   (void __user *)(unsigned long)image.source_address,
 			   image.size))
 		err = -EFAULT;
+	/*
+	 * ARMv8 requires to clean D-cache and invalidate I-cache for memory
+	 * containing new instructions. On x86 this is a NOP.
+	 */
+	flush_icache_range((unsigned long)(image_mem + page_offs),
+			   (unsigned long)(image_mem + page_offs) + image.size);
 
 	vunmap(image_mem);
 
