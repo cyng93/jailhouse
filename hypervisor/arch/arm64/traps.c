@@ -47,11 +47,10 @@ static int arch_handle_hvc(struct trap_context *ctx)
 {
 	unsigned long *regs = ctx->regs;
 
-	if (!IS_PSCI_FN(regs[0]))
-		return TRAP_UNHANDLED;
-
-	regs[0] = psci_dispatch(ctx);
-	arch_skip_instruction(ctx);
+	if (IS_PSCI_FN(regs[0]))
+		regs[0] = psci_dispatch(ctx);
+	else
+		regs[0] = hypercall(regs[0], regs[1], regs[2]);
 
 	return TRAP_HANDLED;
 }
